@@ -9,24 +9,24 @@ namespace ScagnosticsSharp
     public class Edge
     {
         public Node p1, p2;           // start and end poInt32 of the edge
-        protected Edge invE = null;     // inverse edge (p2->p1)
+        public Edge invE = null;     // inverse edge (p2->p1)
         public Edge nextE = null;    // next edge in the triangle in counterclockwise
-        protected Edge nextH = null;    // convex hull link
+        public Edge nextH = null;    // convex hull link
         public Triangle inT = null;   // triangle containing this edge
         protected Double a, b, c;          // line equation parameters. aX+bY+c=0
         public Double weight;
 
-        protected Boolean onHull = false;
+        public Boolean onHull = false;
         public Boolean onMST = false;
-        protected Boolean onShape = false;
-        protected Boolean onOutlier = false;
+        public Boolean onShape = false;
+        public Boolean onOutlier = false;
 
-        protected Edge(Node p1, Node p2)
+        public Edge(Node p1, Node p2)
         {
             update(p1, p2);
         }
 
-        protected void update(Node p1, Node p2)
+        public void update(Node p1, Node p2)
         {
             this.p1 = p1;
             this.p2 = p2;
@@ -37,20 +37,20 @@ namespace ScagnosticsSharp
             asIndex();
         }
 
-        protected Edge makeSymm()
+        public Edge makeSymm()
         {
             Edge e = new Edge(p2, p1);
             linkSymm(e);
             return e;
         }
 
-        protected void linkSymm(Edge e)
+        public void linkSymm(Edge e)
         {
             this.invE = e;
             if (e != null) e.invE = this;
         }
 
-        protected Int32 onSide(Node nd)
+        public Int32 onSide(Node nd)
         {
             Double s = a * nd.x + b * nd.y + c;
             if (s > 0.0) return 1;
@@ -58,12 +58,12 @@ namespace ScagnosticsSharp
             return 0;
         }
 
-        protected void asIndex()
+        public void asIndex()
         {
             p1.anEdge = this;
         }
 
-        protected Edge mostLeft()
+        public Edge mostLeft()
         {
             Edge ee, e = this;
             while ((ee = e.nextE.nextE.invE) != null && ee != this) e = ee;
@@ -88,7 +88,7 @@ namespace ScagnosticsSharp
             }
         }
 
-        protected Boolean isEqual(Edge e)
+        public Boolean isEqual(Edge e)
         {
             return (e.p1.x == this.p1.x) && (e.p2.x == this.p2.x) && (e.p1.y == this.p1.y) && (e.p2.y == this.p2.y);
         }
@@ -107,7 +107,7 @@ namespace ScagnosticsSharp
                 return p1;
         }
 
-        protected Boolean isNewEdge(Node n)
+        public Boolean isNewEdge(Node n)
         {
             foreach(Edge e2 in n.neighbors)
             {
@@ -117,7 +117,7 @@ namespace ScagnosticsSharp
             return true;
         }
 
-        protected Int32 getRunts(Double[] maxLength)
+        public Int32 getRunts(Double[] maxLength)
         {
             Double cutoff = weight;
             Double[] maxLength1 = new Double[1];

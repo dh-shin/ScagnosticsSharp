@@ -12,14 +12,14 @@ namespace ScagnosticsSharp
         protected Int32 count;        // number of poInt32s aggregated at this node
         public Edge anEdge;     // an edge which starts from this node
         public List<Edge> neighbors;   // nearest Delaunay neighbors list
-        protected Boolean onMST;
-        protected Boolean onHull = false;
-        protected Boolean isVisited = false;
-        protected Int32 mstDegree;
-        protected Int32 poInt32ID;
+        public Boolean onMST;
+        public Boolean onHull = false;
+        public Boolean isVisited = false;
+        public Int32 mstDegree;
+        public Int32 poInt32ID;
         protected Int32 nodeID;
 
-        protected Node(Int32 x, Int32 y, Int32 count, Int32 poInt32ID)
+        public Node(Int32 x, Int32 y, Int32 count, Int32 poInt32ID)
         {
             this.x = x;
             this.y = y;
@@ -36,12 +36,12 @@ namespace ScagnosticsSharp
             return Math.Sqrt(dx * dx + dy * dy);
         }
 
-        protected void setNeighbor(Edge neighbor)
+        public void setNeighbor(Edge neighbor)
         {
             neighbors.Add(neighbor);
         }
 
-        protected Edge shortestEdge(Boolean mst)
+        public Edge shortestEdge(Boolean mst)
         {
             Edge emin = null;
             if (neighbors != null)

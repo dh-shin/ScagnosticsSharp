@@ -8,18 +8,18 @@ namespace ScagnosticsSharp
 {
     public class Triangle
     {
-        protected Edge anEdge;        // an edge of this triangle
+        public Edge anEdge;        // an edge of this triangle
         protected Double c_cx;        // center of circle: X
         protected Double c_cy;        // center of circle: Y
         protected Double c_r;         // radius of circle
         public Boolean onComplex = true;
 
-        protected Triangle(Edge e1, Edge e2, Edge e3)
+        public Triangle(Edge e1, Edge e2, Edge e3)
         {
             update(e1, e2, e3);
         }
 
-        protected Triangle(List<Edge> edges, Edge e1, Edge e2, Edge e3)
+        public Triangle(List<Edge> edges, Edge e1, Edge e2, Edge e3)
         {
             update(e1, e2, e3);
             edges.Add(e1);
@@ -27,7 +27,7 @@ namespace ScagnosticsSharp
             edges.Add(e3);
         }
 
-        protected void update(Edge e1, Edge e2, Edge e3)
+        public void update(Edge e1, Edge e2, Edge e3)
         {
             onComplex = true;
             anEdge = e1;
@@ -40,12 +40,12 @@ namespace ScagnosticsSharp
             findCircle();
         }
 
-        protected Boolean inCircle(Node nd)
+        public Boolean inCircle(Node nd)
         {
             return nd.distToNode(c_cx, c_cy) < c_r;
         }
 
-        protected void removeEdges(List<Edge> edges)
+        public void removeEdges(List<Edge> edges)
         {
             edges.Remove(anEdge);
             edges.Remove(anEdge.nextE);
