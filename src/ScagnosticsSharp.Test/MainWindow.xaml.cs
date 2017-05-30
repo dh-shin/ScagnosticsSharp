@@ -24,9 +24,6 @@ namespace ScagnosticsSharp.Test
         public MainWindow()
         {
             InitializeComponent();
-            Class1 a = new Class1(3, 4);
-            a.PrintClass1();
-            a.PrintClass1();
         }
     }
 }
