@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScagnosticsSharp.Test", "ScagnosticsSharp.Test\ScagnosticsSharp.Test.csproj", "{FEB3D657-DF22-42F4-817F-A58A8DCC7693}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CF9C7545-62D3-491A-A54B-BB58BC456980} = {CF9C7545-62D3-491A-A54B-BB58BC456980}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScagnosticsSharp", "ScagnosticsSharp\ScagnosticsSharp.csproj", "{CF9C7545-62D3-491A-A54B-BB58BC456980}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEB3D657-DF22-42F4-817F-A58A8DCC7693}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEB3D657-DF22-42F4-817F-A58A8DCC7693}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEB3D657-DF22-42F4-817F-A58A8DCC7693}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEB3D657-DF22-42F4-817F-A58A8DCC7693}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF9C7545-62D3-491A-A54B-BB58BC456980}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF9C7545-62D3-491A-A54B-BB58BC456980}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF9C7545-62D3-491A-A54B-BB58BC456980}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF9C7545-62D3-491A-A54B-BB58BC456980}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
