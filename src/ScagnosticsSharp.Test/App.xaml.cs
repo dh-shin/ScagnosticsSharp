@@ -9,7 +9,7 @@ using System.Windows;
 namespace ScagnosticsSharp.Test
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Int32eraction logic for App.xaml
     /// </summary>
     public partial class App : Application
     {

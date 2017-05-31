@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
 
 namespace ScagnosticsSharp
 {
@@ -29,6 +29,11 @@ namespace ScagnosticsSharp
         private Int32[] px, py, counts;
         private Boolean[] isOutlier;
         private Double FUZZ = .999;
+
+        // For Java Random Values
+        private static Boolean IsJavaRandReady = false;
+        private static Double[] Rx;
+        private static Double[] Ry;
 
         public Scagnostics(Double[] x, Double[] y, Int32 numBins, Int32 maxBins)
         {
@@ -168,6 +173,54 @@ namespace ScagnosticsSharp
             return outliers;
         }
 
+        public static void LoadJavaRand()
+        {
+            if (IsJavaRandReady == true)
+                return;
+
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "ScagnosticsSharp.Resources.java_random_seed13579_row1000.txt";
+            List<List<Double>> lists;
+            char[] delimChars = { ',' };
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                lists = new List<List<Double>>();
+                while (reader.EndOfStream == false)
+                {
+                    String result = reader.ReadLine();
+                    List<Double> values = new List<Double>();
+                    String[] tokenized = result.Split(delimChars);
+                    for (Int32 i = 0; i < tokenized.Length; i++)
+                    {
+                        Double val;
+                        if (Double.TryParse(tokenized[i], out val) == true)
+                        {
+                            values.Add(val);
+                        }
+                    }
+                    lists.Add(values);
+                }
+            }
+
+            Int32 nVar = lists.First().Count;
+            Int32 nRow = lists.Count;
+
+            Rx = new Double[nRow];
+            for (Int32 i = 0; i < nRow; i++)
+            {
+                Rx[i] = lists[i][0];
+            }
+
+            Ry = new Double[nRow];
+            for (Int32 i = 0; i < nRow; i++)
+            {
+                Ry[i] = lists[i][1];
+            }
+
+            IsJavaRandReady = true;
+        }
+
         private void clear()
         {
             nodes.Clear();
@@ -209,8 +262,8 @@ namespace ScagnosticsSharp
         private Double[] computeMeasures()
         {
             Double[] results = new Double[numScagnostics];
-            // Do not change order of these calls!
 
+            // Do not change order of these calls!
             results[OUTLYING] = computeOutlierMeasure();
             results[CLUMPY] = computeClusterMeasure();
             results[SKEWED] = computeMSTEdgeLengthSkewnessMeasure();
@@ -229,8 +282,20 @@ namespace ScagnosticsSharp
             Random r = new Random(13579);
             for (Int32 i = 0; i < px.Length; i++)
             {
-                Int32 x = px[i] + (Int32)(8 * (r.NextDouble() - .5)); // perturb to prevent singularities
-                Int32 y = py[i] + (Int32)(8 * (r.NextDouble() - .5));
+                Double rx, ry;
+                if(IsJavaRandReady == true)
+                {
+                    rx = Rx[i];
+                    ry = Ry[i];
+                }
+                else
+                {
+                    rx = r.NextDouble();
+                    ry = r.NextDouble();
+                }
+
+                Int32 x = px[i] + (Int32)(8 * (rx - .5)); // perturb to prevent singularities
+                Int32 y = py[i] + (Int32)(8 * (ry - .5));
                 Int32 count = counts[i];
                 if (!isOutlier[i])
                 {
@@ -716,7 +781,6 @@ namespace ScagnosticsSharp
                     e.p2.setNeighbor(e);
             }
         }
-
 
         private void insert(Int32 px, Int32 py, Int32 count, Int32 id)
         {

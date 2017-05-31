@@ -22,18 +22,34 @@ namespace ScagnosticsSharp
             Array.Sort(x, fromIndex, toIndex);
         }
 
+        public static Int32[] indexedDoubleArraySort(Double[] x, Int32 fromIndex, Int32 toIndex)
+        {
+            if (fromIndex == toIndex)
+            {
+                fromIndex = 0;
+                toIndex = x.Length;
+            }
+
+            Double[] x_copy = new Double[x.Length];
+            Array.Copy(x, x_copy, x.Length);
+
+            Int32[] sortOrder = new Int32[toIndex - fromIndex];
+            for(Int32 i = 0; i < sortOrder.Length; i++)
+                sortOrder[i] = i;
+
+            Array.Sort(x_copy, sortOrder, fromIndex, toIndex);
+
+            return sortOrder;
+        }
 
         public static Double[] rank(Double[] a)
         {
-
             Int32 k, k1, k2, kind, kms, l, lind, n;
             Double ak, am, freq;
             Boolean insert;
 
             n = a.Length;
-
             Double[] ranks = new Double[n];
-
             Int32[] index = indexedDoubleArraySort(a, 0, n);
 
             lind = index[0];
