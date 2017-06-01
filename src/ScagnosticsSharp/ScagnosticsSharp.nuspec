@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>Leland Wilkinson, Anushka Anand</authors>
+    <owners>DongHwa Shin</owners>
+    <licenseUrl>https://github.com/dh-shin/ScagnosticsSharp/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/dh-shin/ScagnosticsSharp</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Initial version of C# Scagnostics</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>visualization Cognostics</tags>
+  </metadata>
+</package>
