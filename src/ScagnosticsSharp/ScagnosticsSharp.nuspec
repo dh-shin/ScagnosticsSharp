@@ -10,8 +10,7 @@
     <projectUrl>https://github.com/dh-shin/ScagnosticsSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial version of C# Scagnostics</releaseNotes>
-    <copyright>Copyright 2017</copyright>
-    <tags>visualization Cognostics</tags>
+    <releaseNotes>Downgrade target version of the .NET Framework to 4.0</releaseNotes>
+    <tags>visualization scatterplot</tags>
   </metadata>
 </package>
