@@ -8,96 +8,102 @@ namespace ScagnosticsSharp
 {
     public class Scagnostics
     {
-        private BinnedData bdata;
-        private List<Node> nodes;        // nodes set
-        private List<Edge> edges;        // edges set
-        private List<Triangle> triangles;    // triangles set
-        private List<Edge> mstEdges;     // minimum spanning tree set
-        private Edge hullStart;   // entering edge of convex hull
-        private Edge actE;
-        private Int32 totalPeeledCount;
-        private Int32 totalCount;
-        private Double alphaArea = 1, alphaPerimeter = 1, hullArea = 1, hullPerimeter = 1;
-        private Double totalOriginalMSTLengths;
-        private Double totalMSTOutlierLengths;
-        private Double[] sortedOriginalMSTLengths;
-        private static Int32 numScagnostics = 9;
-        private static readonly Int32 OUTLYING = 0, SKEWED = 1, CLUMPY = 2, SPARSE = 3,
-                STRIATED = 4, CONVEX = 5, SKINNY = 6, STRINGY = 7, MONOTONIC = 8;
-        private static readonly String[] scagnosticsLabels = {"Outlying", "Skewed", "Clumpy", "Sparse",
-            "Striated", "Convex", "Skinny", "Stringy", "Monotonic"};
-        private Int32[] px, py, counts;
-        private Boolean[] isOutlier;
-        private Double FUZZ = .999;
+        private const Double FUZZ = .999;
 
-        // For Java Random Values
+        private static readonly Int32 NumScagnostics = 9;
+        private static readonly Int32 OUTLYING = 0, SKEWED = 1, CLUMPY = 2,
+            SPARSE = 3, STRIATED = 4, CONVEX = 5,
+            SKINNY = 6, STRINGY = 7, MONOTONIC = 8;
+        private static readonly String[] ScagnosticsLabels = {"Outlying", "Skewed", "Clumpy",
+            "Sparse", "Striated", "Convex",
+            "Skinny", "Stringy", "Monotonic"};
+        private static readonly Int32 RandomSeed = 13579;
+
+        private BinnedData BinData;
+        private List<Node> Nodes;           // nodes set
+        private List<Edge> Edges;           // edges set
+        private List<Triangle> Triangles;   // triangles set
+        private List<Edge> MstEdges;        // minimum spanning tree set
+        private Edge HullStart;             // entering edge of convex hull
+        private Edge ActE;
+        private Int32 TotalPeeledCount;
+        private Int32 TotalCount;
+        private Double AlphaArea = 1, AlphaPerimeter = 1, HullArea = 1, HullPerimeter = 1;
+        private Double TotalOriginalMSTLengths;
+        private Double TotalMSTOutlierLengths;
+        private Double[] SortedOriginalMSTLengths;
+
+        private Int32[] Px, Py, Counts;
+        private Boolean[] IsOutlier;
+
+        // For Java Random Numbers
         private static Boolean IsJavaRandReady = false;
         private static Double[] Rx;
         private static Double[] Ry;
 
         public Scagnostics(Double[] x, Double[] y, Int32 numBins, Int32 maxBins)
         {
-            nodes = new List<Node>();
-            edges = new List<Edge>();
-            triangles = new List<Triangle>();
-            mstEdges = new List<Edge>();
+            Nodes = new List<Node>();
+            Edges = new List<Edge>();
+            Triangles = new List<Triangle>();
+            MstEdges = new List<Edge>();
             Binner b = new Binner(maxBins);
-            bdata = b.binHex(x, y, numBins);
+            BinData = b.BinHex(x, y, numBins);
         }
 
-        public Double[] compute()
+        public Double[] Compute()
         {
-            px = bdata.getXData();
-            py = bdata.getYData();
-            if (px.Length < 3)
+            Px = BinData.X;
+            Py = BinData.Y;
+            if (Px.Length < 3)
                 return null;
-            Int32 xx = px[0];
-            Int32 yy = py[0];
+            Int32 xx = Px[0];
+            Int32 yy = Py[0];
             Boolean isXConstant = true;
             Boolean isYConstant = true;
-            for (Int32 i = 1; i < px.Length; i++)
+            for (Int32 i = 1; i < Px.Length; i++)
             {
-                if (px[i] != xx) isXConstant = false;
-                if (py[i] != yy) isYConstant = false;
+                if (Px[i] != xx) isXConstant = false;
+                if (Py[i] != yy) isYConstant = false;
             }
             if (isXConstant || isYConstant)
                 return null;
 
-            findOutliers(bdata);
+            FindOutliers(BinData);
 
-            computeAlphaGraph();
-            computeTotalCount();
-            computeAlphaArea();
-            computeAlphaPerimeter();
-            computeHullArea();
-            computeHullPerimeter();
-            return computeMeasures();
+            ComputeAlphaGraph();
+            ComputeTotalCount();
+            ComputeAlphaArea();
+            ComputeAlphaPerimeter();
+            ComputeHullArea();
+            ComputeHullPerimeter();
+            return ComputeMeasures();
         }
 
-        public static Int32 getNumScagnostics()
+        public static Int32 GetNumScagnostics()
         {
-            return scagnosticsLabels.Length;
+            return ScagnosticsLabels.Length;
         }
 
-        public static String[] getScagnosticsLabels()
+        public static String[] GetScagnosticsLabels()
         {
-            return scagnosticsLabels;
+            return ScagnosticsLabels;
         }
 
-        public static Boolean[] computeScagnosticsExemplars(Double[,] pts)
+        public static Boolean[] ComputeScagnosticsExemplars(Double[,] pts)
         {
             Int32 nPts = pts.GetLength(0);
             if (nPts < 2)
                 return null;
             Cluster c = new Cluster(0, 0);
-            Int32[] exemp = c.compute(pts);
+            Int32[] exemp = c.Compute(pts);
             Boolean[] exemplars = new Boolean[nPts];
             for (Int32 i = 0; i < exemp.Length; i++)
                 exemplars[exemp[i]] = true;
             return exemplars;
         }
 
-        public static Boolean[] computeScagnosticsOutliers(Double[,] pts)
+        public static Boolean[] ComputeScagnosticsOutliers(Double[,] pts)
         {
             // Prim's algorithm
             Int32 nPts = pts.GetLength(0);  // p*(p-1)/2 poInt32s representing pairwise scatterplots
@@ -155,7 +161,7 @@ namespace ScagnosticsSharp
                     }
                 }
             }
-            Double cutoff = findCutoff(lengths);
+            Double cutoff = FindCutoff(lengths);
             Boolean[] outliers = new Boolean[nPts];
             for (Int32 i = 0; i < nPts; i++)
                 outliers[i] = true;
@@ -173,7 +179,7 @@ namespace ScagnosticsSharp
             return outliers;
         }
 
-        public static void LoadJavaRand()
+        public static void LoadJavaRandomNumber()
         {
             if (IsJavaRandReady == true)
                 return;
@@ -221,65 +227,70 @@ namespace ScagnosticsSharp
             IsJavaRandReady = true;
         }
 
-        private void clear()
+        public static void UnloadJavaRandomNumber()
         {
-            nodes.Clear();
-            edges.Clear();
-            triangles.Clear();
-            mstEdges.Clear();
+            IsJavaRandReady = false;
         }
 
-        private void findOutliers(BinnedData bdata)
+        private void Clear()
         {
-            this.counts = bdata.getCounts();
-            isOutlier = new Boolean[px.Length];
-            computeDT(px, py);
-            computeMST();
-            sortedOriginalMSTLengths = getSortedMSTEdgeLengths();
-            Double cutoff = computeCutoff(sortedOriginalMSTLengths);
-            computeTotalOriginalMSTLengths();
-            Boolean foundNewOutliers = computeMSTOutliers(cutoff);
+            Nodes.Clear();
+            Edges.Clear();
+            Triangles.Clear();
+            MstEdges.Clear();
+        }
+
+        private void FindOutliers(BinnedData bdata)
+        {
+            this.Counts = bdata.Counts;
+            IsOutlier = new Boolean[Px.Length];
+            ComputeDT(Px, Py);
+            ComputeMST();
+            SortedOriginalMSTLengths = GetSortedMSTEdgeLengths();
+            Double cutoff = ComputeCutoff(SortedOriginalMSTLengths);
+            ComputeTotalOriginalMSTLengths();
+            Boolean foundNewOutliers = ComputeMSTOutliers(cutoff);
             Double[] sortedPeeledMSTLengths;
             while (foundNewOutliers)
             {
-                clear();
-                computeDT(px, py);
-                computeMST();
-                sortedPeeledMSTLengths = getSortedMSTEdgeLengths();
-                cutoff = computeCutoff(sortedPeeledMSTLengths);
-                foundNewOutliers = computeMSTOutliers(cutoff);
+                Clear();
+                ComputeDT(Px, Py);
+                ComputeMST();
+                sortedPeeledMSTLengths = GetSortedMSTEdgeLengths();
+                cutoff = ComputeCutoff(sortedPeeledMSTLengths);
+                foundNewOutliers = ComputeMSTOutliers(cutoff);
             }
         }
 
-        private void computeTotalCount()
+        private void ComputeTotalCount()
         {
-            for (Int32 i = 0; i < counts.Length; i++)
+            for (Int32 i = 0; i < Counts.Length; i++)
             {
-                totalCount += counts[i];
+                TotalCount += Counts[i];
             }
         }
 
-        private Double[] computeMeasures()
+        private Double[] ComputeMeasures()
         {
-            Double[] results = new Double[numScagnostics];
+            Double[] results = new Double[NumScagnostics];
 
             // Do not change order of these calls!
-            results[OUTLYING] = computeOutlierMeasure();
-            results[CLUMPY] = computeClusterMeasure();
-            results[SKEWED] = computeMSTEdgeLengthSkewnessMeasure();
-            results[CONVEX] = computeConvexityMeasure();
-            results[SKINNY] = computeSkinnyMeasure();
-            results[STRINGY] = computeStringyMeasure();
-            results[STRIATED] = computeStriationMeasure();
-            results[SPARSE] = computeSparsenessMeasure();
-            results[MONOTONIC] = computeMonotonicityMeasure();
+            results[OUTLYING] = ComputeOutlierMeasure();
+            results[CLUMPY] = ComputeClusterMeasure();
+            results[SKEWED] = ComputeMSTEdgeLengthSkewnessMeasure();
+            results[CONVEX] = ComputeConvexityMeasure();
+            results[SKINNY] = ComputeSkinnyMeasure();
+            results[STRINGY] = ComputeStringyMeasure();
+            results[STRIATED] = ComputeStriationMeasure();
+            results[SPARSE] = ComputeSparsenessMeasure();
+            results[MONOTONIC] = ComputeMonotonicityMeasure();
             return results;
         }
 
-        private void computeDT(Int32[] px, Int32[] py)
+        private void ComputeDT(Int32[] px, Int32[] py)
         {
-            totalPeeledCount = 0;
-            Random r = new Random(13579);
+            TotalPeeledCount = 0;
+            Random rand = new Random(RandomSeed);
             for (Int32 i = 0; i < px.Length; i++)
             {
                 Double rx, ry;
@@ -290,32 +301,32 @@ namespace ScagnosticsSharp
                 }
                 else
                 {
-                    rx = r.NextDouble();
-                    ry = r.NextDouble();
+                    rx = rand.NextDouble();
+                    ry = rand.NextDouble();
                 }
 
                 Int32 x = px[i] + (Int32)(8 * (rx - .5)); // perturb to prevent singularities
                 Int32 y = py[i] + (Int32)(8 * (ry - .5));
-                Int32 count = counts[i];
-                if (!isOutlier[i])
+                Int32 count = Counts[i];
+                if (!IsOutlier[i])
                 {
-                    insert(x, y, count, i);
-                    totalPeeledCount += count;
+                    Insert(x, y, count, i);
+                    TotalPeeledCount += count;
                 }
             }
-            setNeighbors();
-            markHull();
+            SetNeighbors();
+            MarkHull();
         }
 
-        private void computeMST()
+        private void ComputeMST()
         {
-            if (nodes.Count > 1)
+            if (Nodes.Count > 1)
             {
                 List<Node> mstNodes = new List<Node>();
-                Node mstNode = nodes[0];
-                updateMSTNodes(mstNode, mstNodes);
+                Node mstNode = Nodes[0];
+                UpdateMSTNodes(mstNode, mstNodes);
                 Int32 count = 1;
-                while (count < nodes.Count)
+                while (count < Nodes.Count)
                 {
                     Edge addEdge = null;
                     Double wmin = Double.MaxValue;
@@ -324,10 +335,10 @@ namespace ScagnosticsSharp
                     foreach(Node n in mstNodes)
                     {
                         mstNode = n;
-                        Edge candidateEdge = mstNode.shortestEdge(false);
+                        Edge candidateEdge = mstNode.ShortestEdge(false);
                         if (candidateEdge != null)
                         {
-                            Double wt = candidateEdge.weight;
+                            Double wt = candidateEdge.Weight;
                             if (wt < wmin)
                             {
                                 wmin = wt;
@@ -338,49 +349,49 @@ namespace ScagnosticsSharp
                     }
                     if (addEdge != null)
                     {
-                        Node addNode = addEdge.otherNode(nmin);
-                        updateMSTNodes(addNode, mstNodes);
-                        updateMSTEdges(addEdge, mstEdges);
+                        Node addNode = addEdge.OtherNode(nmin);
+                        UpdateMSTNodes(addNode, mstNodes);
+                        UpdateMSTEdges(addEdge, MstEdges);
                     }
                     count++;
                 }
             }
         }
 
-        private static Double findCutoff(Double[] distances)
+        private static Double FindCutoff(Double[] distances)
         {
-            Int32[] index = Sorts.indexedDoubleArraySort(distances, 0, 0);
+            Int32[] index = Sorts.IndexedDoubleArraySort(distances, 0, 0);
             Int32 n50 = distances.Length / 2;
             Int32 n25 = n50 / 2;
             Int32 n75 = n50 + n50 / 2;
             return distances[index[n75]] + 1.5 * (distances[index[n75]] - distances[index[n25]]);
         }
 
-        private Boolean computeMSTOutliers(Double omega)
+        private Boolean ComputeMSTOutliers(Double omega)
         {
             Boolean found = false;
 
-            foreach(Node n in nodes)
+            foreach(Node n in Nodes)
             {
                 Boolean delete = true;
-                foreach (Edge e in n.neighbors)
+                foreach (Edge e in n.Neighbors)
                 {
-                    if (e.onMST && e.weight < omega)
+                    if (e.OnMST && e.Weight < omega)
                         delete = false;
                 }
                 if (delete)
                 {
                     Double sumlength = 0;
-                    foreach (Edge e in n.neighbors)
+                    foreach (Edge e in n.Neighbors)
                     {
-                        if (e.onMST && !e.onOutlier)
+                        if (e.OnMST && !e.OnOutlier)
                         {
-                            sumlength += e.weight;
-                            e.onOutlier = true;
+                            sumlength += e.Weight;
+                            e.OnOutlier = true;
                         }
                     }
-                    totalMSTOutlierLengths += sumlength;
-                    isOutlier[n.poInt32ID] = true;
+                    TotalMSTOutlierLengths += sumlength;
+                    IsOutlier[n.PointID] = true;
                     found = true;
                 }
             }
@@ -388,7 +399,7 @@ namespace ScagnosticsSharp
             return found;
         }
 
-        private Double computeCutoff(Double[] lengths)
+        private Double ComputeCutoff(Double[] lengths)
         {
             if (lengths.Length == 0) return 0;
             Int32 n50 = lengths.Length / 2;
@@ -397,222 +408,223 @@ namespace ScagnosticsSharp
             return lengths[n75] + 1.5 * (lengths[n75] - lengths[n25]);
         }
 
-        private Double computeAlphaValue()
+        private Double ComputeAlphaValue()
         {
-            Int32 length = sortedOriginalMSTLengths.Length;
+            Int32 length = SortedOriginalMSTLengths.Length;
             if (length == 0) return 100.0;
             Int32 n90 = (9 * length) / 10;
-            Double alpha = sortedOriginalMSTLengths[n90];
+            Double alpha = SortedOriginalMSTLengths[n90];
             return Math.Min(alpha, 100.0);
         }
 
-        private Double computeMSTEdgeLengthSkewnessMeasure()
+        private Double ComputeMSTEdgeLengthSkewnessMeasure()
         {
-            if (sortedOriginalMSTLengths.Length == 0)
+            if (SortedOriginalMSTLengths.Length == 0)
                 return 0;
-            Int32 n = sortedOriginalMSTLengths.Length;
+            Int32 n = SortedOriginalMSTLengths.Length;
             Int32 n50 = n / 2;
             Int32 n10 = n / 10;
             Int32 n90 = (9 * n) / 10;
-            Double skewness = (sortedOriginalMSTLengths[n90] - sortedOriginalMSTLengths[n50]) /
-                    (sortedOriginalMSTLengths[n90] - sortedOriginalMSTLengths[n10]);
-            Double t = (Double)totalCount / 500;
+            Double skewness = (SortedOriginalMSTLengths[n90] - SortedOriginalMSTLengths[n50]) /
+                    (SortedOriginalMSTLengths[n90] - SortedOriginalMSTLengths[n10]);
+            Double t = (Double)TotalCount / 500;
             Double correction = .7 + .3 / (1 + t * t);
             return 1 - correction * (1 - skewness);
         }
 
-        private void updateMSTEdges(Edge addEdge, List<Edge> mstEdges)
+        private void UpdateMSTEdges(Edge addEdge, List<Edge> mstEdges)
         {
             mstEdges.Add(addEdge);
-            addEdge.onMST = true;
-            addEdge.p1.mstDegree++;
-            addEdge.p2.mstDegree++;
+            addEdge.OnMST = true;
+            addEdge.P1.MstDegree++;
+            addEdge.P2.MstDegree++;
         }
 
-        private void updateMSTNodes(Node addNode, List<Node> mstNodes)
+        private void UpdateMSTNodes(Node addNode, List<Node> mstNodes)
         {
             mstNodes.Add(addNode);
-            addNode.onMST = true;
+            addNode.OnMST = true;
         }
 
-        private Double[] getSortedMSTEdgeLengths()
+        private Double[] GetSortedMSTEdgeLengths()
         {
-            Double[] lengths = computeEdgeLengths(mstEdges, mstEdges.Count);
+            Double[] lengths = ComputeEdgeLengths(MstEdges, MstEdges.Count);
             Sorts.DoubleArraySort(lengths, 0, 0);
             return lengths;
         }
 
-        private void computeTotalOriginalMSTLengths()
+        private void ComputeTotalOriginalMSTLengths()
         {
-            for (Int32 i = 0; i < sortedOriginalMSTLengths.Length; i++)
-                totalOriginalMSTLengths += sortedOriginalMSTLengths[i];
+            for (Int32 i = 0; i < SortedOriginalMSTLengths.Length; i++)
+                TotalOriginalMSTLengths += SortedOriginalMSTLengths[i];
         }
 
-        private Double computeOutlierMeasure()
+        private Double ComputeOutlierMeasure()
         {
-            return totalMSTOutlierLengths / totalOriginalMSTLengths;
+            return TotalMSTOutlierLengths / TotalOriginalMSTLengths;
         }
 
-        private Double[] computeEdgeLengths(List<Edge> graph, Int32 n)
+        private Double[] ComputeEdgeLengths(List<Edge> graph, Int32 n)
         {
             Double[] lengths = new Double[n];
             Int32 i = 0;
             foreach(Edge e in graph)
             {
-                lengths[i] = e.weight;
+                lengths[i] = e.Weight;
                 i++;
             }
             return lengths;
         }
 
-        private Boolean poInt32sInCircle(Node n, Double xc, Double yc, Double radius)
+        private Boolean PointsInCircle(Node n, Double xc, Double yc, Double radius)
         {
             Double r = FUZZ * radius;
-            foreach(Edge e in n.neighbors)
+            foreach(Edge e in n.Neighbors)
             {
-                Node no = e.otherNode(n);
-                Double dist = no.distToNode(xc, yc);
+                Node no = e.OtherNode(n);
+                Double dist = no.DistToNode(xc, yc);
                 if (dist < r)
                     return true;
             }
             return false;
         }
 
-        private void computeAlphaGraph()
-        { // requires initializing SEdge.onShape = false
+        private void ComputeAlphaGraph()
+        { 
+            // requires initializing SEdge.onShape = false
             Boolean deleted;
-            Double alpha = computeAlphaValue();
+            Double alpha = ComputeAlphaValue();
             do
             {
                 deleted = false;
-                foreach (Edge e in edges)
+                foreach (Edge e in Edges)
                 {
-                    if (e.inT.onComplex)
+                    if (e.InT.OnComplex)
                     {
-                        if (alpha < e.weight / 2)
+                        if (alpha < e.Weight / 2)
                         {
-                            e.inT.onComplex = false;
+                            e.InT.OnComplex = false;
                             deleted = true;
                         }
                         else
                         {
-                            if (e.invE != null)
-                                if (e.invE.inT.onComplex)
+                            if (e.InvE != null)
+                                if (e.InvE.InT.OnComplex)
                                     continue;
-                            if (!edgeIsExposed(alpha, e))
+                            if (!EdgeIsExposed(alpha, e))
                             {
-                                e.inT.onComplex = false;
+                                e.InT.OnComplex = false;
                                 deleted = true;
                             }
                         }
                     }
                 }
             } while (deleted);
-            markShape();
+            MarkShape();
         }
 
-        private void markShape()
+        private void MarkShape()
         {
-            foreach(Edge e in edges)
+            foreach(Edge e in Edges)
             {
-                e.onShape = false;
-                if (e.inT.onComplex)
+                e.OnShape = false;
+                if (e.InT.OnComplex)
                 {
-                    if (e.invE == null)
+                    if (e.InvE == null)
                     {
-                        e.onShape = true;
+                        e.OnShape = true;
                     }
-                    else if (!e.invE.inT.onComplex)
-                        e.onShape = true;
+                    else if (!e.InvE.InT.OnComplex)
+                        e.OnShape = true;
                 }
             }
         }
 
-        private Boolean edgeIsExposed(Double alpha, Edge e)
+        private Boolean EdgeIsExposed(Double alpha, Edge e)
         {
-            Double x1 = e.p1.x;
-            Double x2 = e.p2.x;
-            Double y1 = e.p1.y;
-            Double y2 = e.p2.y;
+            Double x1 = e.P1.X;
+            Double x2 = e.P2.X;
+            Double y1 = e.P1.Y;
+            Double y2 = e.P2.Y;
             Double xe = (x1 + x2) / 2;
             Double ye = (y1 + y2) / 2;
-            Double d = Math.Sqrt(alpha * alpha - e.weight * e.weight / 4);
-            Double xt = d * (y2 - y1) / e.weight;
-            Double yt = d * (x2 - x1) / e.weight;
+            Double d = Math.Sqrt(alpha * alpha - e.Weight * e.Weight / 4);
+            Double xt = d * (y2 - y1) / e.Weight;
+            Double yt = d * (x2 - x1) / e.Weight;
             Double xc1 = xe + xt;
             Double yc1 = ye - yt;
             Double xc2 = xe - xt;
             Double yc2 = ye + yt;
-            Boolean poInt32sInCircle1 = poInt32sInCircle(e.p1, xc1, yc1, alpha) ||
-                    poInt32sInCircle(e.p2, xc1, yc1, alpha);
-            Boolean poInt32sInCircle2 = poInt32sInCircle(e.p1, xc2, yc2, alpha) ||
-                    poInt32sInCircle(e.p2, xc2, yc2, alpha);
-            return !(poInt32sInCircle1 && poInt32sInCircle2);
+            Boolean pointsInCircle1 = PointsInCircle(e.P1, xc1, yc1, alpha) ||
+                    PointsInCircle(e.P2, xc1, yc1, alpha);
+            Boolean pointsInCircle2 = PointsInCircle(e.P1, xc2, yc2, alpha) ||
+                    PointsInCircle(e.P2, xc2, yc2, alpha);
+            return !(pointsInCircle1 && pointsInCircle2);
         }
 
-        private Double computeStringyMeasure()
+        private Double ComputeStringyMeasure()
         {
             Int32 count1 = 0;
             Int32 count2 = 0;
 
-            foreach(Node n in nodes)
+            foreach(Node n in Nodes)
             {
-                if (n.mstDegree == 1)
+                if (n.MstDegree == 1)
                     count1++;
-                if (n.mstDegree == 2)
+                if (n.MstDegree == 2)
                     count2++;
             }
-            Double result = (Double)count2 / (Double)(nodes.Count - count1);
+            Double result = (Double)count2 / (Double)(Nodes.Count - count1);
             return result * result * result;
         }
 
-        private Double computeClusterMeasure()
+        private Double ComputeClusterMeasure()
         {
             Double[] maxLength = new Double[1];
             Double maxValue = 0;
-            foreach(Edge e in mstEdges)
+            foreach(Edge e in MstEdges)
             {
-                clearVisits();
-                e.onMST = false;  // break MST at this edge
-                Int32 runts = e.getRunts(maxLength);
-                e.onMST = true;   // restore this edge to MST
+                ClearVisits();
+                e.OnMST = false;  // break MST at this edge
+                Int32 runts = e.GetRunts(maxLength);
+                e.OnMST = true;   // restore this edge to MST
                 if (maxLength[0] > 0)
                 {
-                    Double value = runts * (1 - maxLength[0] / e.weight);
+                    Double value = runts * (1 - maxLength[0] / e.Weight);
                     if (value > maxValue)
                         maxValue = value;
                 }
             }
-            return 2 * maxValue / totalPeeledCount;
+            return 2 * maxValue / TotalPeeledCount;
         }
 
-        private void clearVisits()
+        private void ClearVisits()
         {
-            foreach(Node n in nodes)
+            foreach(Node n in Nodes)
             {
-                n.isVisited = false;
+                n.IsVisited = false;
             }
         }
 
-        private Double computeMonotonicityMeasure()
+        private Double ComputeMonotonicityMeasure()
         {
-            Int32 n = counts.Length;
+            Int32 n = Counts.Length;
             Double[] ax = new Double[n];
             Double[] ay = new Double[n];
             Double[] weights = new Double[n];
             for (Int32 i = 0; i < n; i++)
             {
-                ax[i] = px[i];
-                ay[i] = py[i];
-                weights[i] = counts[i];
+                ax[i] = Px[i];
+                ay[i] = Py[i];
+                weights[i] = Counts[i];
             }
-            Double[] rx = Sorts.rank(ax);
-            Double[] ry = Sorts.rank(ay);
-            Double s = computePearson(rx, ry, weights);
+            Double[] rx = Sorts.Rank(ax);
+            Double[] ry = Sorts.Rank(ay);
+            Double s = ComputePearson(rx, ry, weights);
             return s * s;
         }
 
-        private Double computePearson(Double[] x, Double[] y, Double[] weights)
+        private Double ComputePearson(Double[] x, Double[] y, Double[] weights)
         {
             Int32 n = x.Length;
             Double xmean = 0;
@@ -624,7 +636,7 @@ namespace ScagnosticsSharp
             for (Int32 i = 0; i < n; i++)
             {
                 Double wt = weights[i];
-                if (wt > 0 && !isOutlier[i])
+                if (wt > 0 && !IsOutlier[i])
                 {
                     sumwt += wt;
                     xx += (x[i] - xmean) * wt * (x[i] - xmean);
@@ -638,40 +650,40 @@ namespace ScagnosticsSharp
             return xy;
         }
 
-        private Double computeSparsenessMeasure()
+        private Double ComputeSparsenessMeasure()
         {
-            Int32 n = sortedOriginalMSTLengths.Length;
+            Int32 n = SortedOriginalMSTLengths.Length;
             Int32 n90 = (9 * n) / 10;
-            Double sparse = Math.Min(sortedOriginalMSTLengths[n90] / 1000, 1);
-            Double t = (Double)totalCount / 500;
+            Double sparse = Math.Min(SortedOriginalMSTLengths[n90] / 1000, 1);
+            Double t = (Double)TotalCount / 500;
             Double correction = .7 + .3 / (1 + t * t);
             return correction * sparse;
         }
 
-        private Double computeStriationMeasure()
+        private Double ComputeStriationMeasure()
         {
             Double numEdges = 0;
 
-            foreach(Edge e in mstEdges)
+            foreach(Edge e in MstEdges)
             {
-                Node n1 = e.p1;
-                Node n2 = e.p2;
-                if (n1.mstDegree == 2 && n2.mstDegree == 2)
+                Node n1 = e.P1;
+                Node n2 = e.P2;
+                if (n1.MstDegree == 2 && n2.MstDegree == 2)
                 {
-                    Edge e1 = getAdjacentMSTEdge(n1, e);
-                    Edge e2 = getAdjacentMSTEdge(n2, e);
-                    if (cosineOfAdjacentEdges(e, e1, n1) < -.7 && cosineOfAdjacentEdges(e, e2, n2) < -.7)
+                    Edge e1 = GetAdjacentMSTEdge(n1, e);
+                    Edge e2 = GetAdjacentMSTEdge(n2, e);
+                    if (CosineOfAdjacentEdges(e, e1, n1) < -.7 && CosineOfAdjacentEdges(e, e2, n2) < -.7)
                         numEdges++;
                 }
             }
-            return numEdges / (Double)mstEdges.Count;
+            return numEdges / (Double)MstEdges.Count;
         }
 
-        private Edge getAdjacentMSTEdge(Node n, Edge e)
+        private Edge GetAdjacentMSTEdge(Node n, Edge e)
         {
-            foreach(Edge et in n.neighbors)
+            foreach(Edge et in n.Neighbors)
             {
-                if (et.onMST && e != et)
+                if (et.OnMST && e != et)
                 {
                     return et;
                 }
@@ -679,12 +691,12 @@ namespace ScagnosticsSharp
             return null;
         }
 
-        private Double cosineOfAdjacentEdges(Edge e1, Edge e2, Node n)
+        private Double CosineOfAdjacentEdges(Edge e1, Edge e2, Node n)
         {
-            Double v1x = e1.otherNode(n).x - n.x;
-            Double v1y = e1.otherNode(n).y - n.y;
-            Double v2x = e2.otherNode(n).x - n.x;
-            Double v2y = e2.otherNode(n).y - n.y;
+            Double v1x = e1.OtherNode(n).X - n.X;
+            Double v1y = e1.OtherNode(n).Y - n.Y;
+            Double v2x = e2.OtherNode(n).X - n.X;
+            Double v2y = e2.OtherNode(n).Y - n.Y;
             Double v1 = Math.Sqrt(v1x * v1x + v1y * v1y);
             Double v2 = Math.Sqrt(v2x * v2x + v2y * v2y);
             v1x = v1x / v1;
@@ -694,261 +706,261 @@ namespace ScagnosticsSharp
             return v1x * v2x + v1y * v2y;
         }
 
-        private Double computeConvexityMeasure()
+        private Double ComputeConvexityMeasure()
         {
-            if (hullArea == 0) // poInt32s in general position
+            if (HullArea == 0) // poInt32s in general position
                 return 1;
             else
             {
-                Double t = (Double)totalCount / 500;
+                Double t = (Double)TotalCount / 500;
                 Double correction = .7 + .3 / (1 + t * t);
-                Double convexity = alphaArea / hullArea;
+                Double convexity = AlphaArea / HullArea;
                 return correction * convexity;
             }
         }
 
-        private Double computeSkinnyMeasure()
+        private Double ComputeSkinnyMeasure()
         {
-            if (alphaPerimeter > 0)
-                return 1 - Math.Sqrt(4 * Math.PI * alphaArea) / alphaPerimeter;
+            if (AlphaPerimeter > 0)
+                return 1 - Math.Sqrt(4 * Math.PI * AlphaArea) / AlphaPerimeter;
             else
                 return 1;
         }
 
-        private void computeAlphaArea()
+        private void ComputeAlphaArea()
         {
             Double area = 0;       
-            foreach(Triangle t in triangles)
+            foreach(Triangle t in Triangles)
             {
-                if (t.onComplex)
+                if (t.OnComplex)
                 {
-                    Node p1 = t.anEdge.p1;
-                    Node p2 = t.anEdge.p2;
-                    Node p3 = t.anEdge.nextE.p2;
-                    area += Math.Abs(p1.x * p2.y + p1.y * p3.x + p2.x * p3.y
-                            - p3.x * p2.y - p3.y * p1.x - p1.y * p2.x);
+                    Node p1 = t.AnEdge.P1;
+                    Node p2 = t.AnEdge.P2;
+                    Node p3 = t.AnEdge.NextE.P2;
+                    area += Math.Abs(p1.X * p2.Y + p1.Y * p3.X + p2.X * p3.Y
+                            - p3.X * p2.Y - p3.Y * p1.X - p1.Y * p2.X);
                 }
             }
-            alphaArea = area / 2;
+            AlphaArea = area / 2;
         }
 
-        private void computeHullArea()
+        private void ComputeHullArea()
         {
             Double area = 0.0;
-            foreach(Triangle t in triangles)
+            foreach(Triangle t in Triangles)
             {
-                Node p1 = t.anEdge.p1;
-                Node p2 = t.anEdge.p2;
-                Node p3 = t.anEdge.nextE.p2;
-                area += Math.Abs(p1.x * p2.y + p1.y * p3.x + p2.x * p3.y
-                        - p3.x * p2.y - p3.y * p1.x - p1.y * p2.x);
+                Node p1 = t.AnEdge.P1;
+                Node p2 = t.AnEdge.P2;
+                Node p3 = t.AnEdge.NextE.P2;
+                area += Math.Abs(p1.X * p2.Y + p1.Y * p3.X + p2.X * p3.Y
+                        - p3.X * p2.Y - p3.Y * p1.X - p1.Y * p2.X);
             }
-            hullArea = area / 2.0;
+            HullArea = area / 2.0;
         }
 
-        private void computeAlphaPerimeter()
+        private void ComputeAlphaPerimeter()
         {
             Double sum = 0;
-            foreach(Edge e in edges)
+            foreach(Edge e in Edges)
             {
-                if (e.onShape)
+                if (e.OnShape)
                 {
-                    sum += e.weight;
+                    sum += e.Weight;
                 }
             }
-            alphaPerimeter = sum;
+            AlphaPerimeter = sum;
         }
 
-        private void computeHullPerimeter()
+        private void ComputeHullPerimeter()
         {
             Double sum = 0;
-            Edge e = hullStart;
+            Edge e = HullStart;
             do
             {
-                sum += e.p1.distToNode(e.p2.x, e.p2.y);
-                e = e.nextH;
-            } while (!e.isEqual(hullStart));
-            hullPerimeter = sum;
+                sum += e.P1.DistToNode(e.P2.X, e.P2.Y);
+                e = e.NextH;
+            } while (!e.IsEqual(HullStart));
+            HullPerimeter = sum;
         }
 
-        private void setNeighbors()
+        private void SetNeighbors()
         {
-            foreach(Edge e in edges)
+            foreach(Edge e in Edges)
             {
-                if (e.isNewEdge(e.p1))
-                    e.p1.setNeighbor(e);
-                if (e.isNewEdge(e.p2))
-                    e.p2.setNeighbor(e);
+                if (e.IsNewEdge(e.P1))
+                    e.P1.SetNeighbor(e);
+                if (e.IsNewEdge(e.P2))
+                    e.P2.SetNeighbor(e);
             }
         }
 
-        private void insert(Int32 px, Int32 py, Int32 count, Int32 id)
+        private void Insert(Int32 px, Int32 py, Int32 count, Int32 id)
         {
             Int32 eid;
             Node nd = new Node(px, py, count, id);
-            nodes.Add(nd);
-            if (nodes.Count < 3) return;
-            if (nodes.Count == 3)    // create the first triangle
+            Nodes.Add(nd);
+            if (Nodes.Count < 3) return;
+            if (Nodes.Count == 3)    // create the first triangle
             {
-                Node p1 = nodes[0];
-                Node p2 = nodes[1];
-                Node p3 = nodes[2];
+                Node p1 = Nodes[0];
+                Node p2 = Nodes[1];
+                Node p3 = Nodes[2];
                 Edge e1 = new Edge(p1, p2);
-                if (e1.onSide(p3) == 0)
+                if (e1.OnSide(p3) == 0)
                 {
-                    nodes.Remove(nd);
+                    Nodes.Remove(nd);
                     return;
                 }
-                if (e1.onSide(p3) == -1)  // right side
+                if (e1.OnSide(p3) == -1)  // right side
                 {
-                    p1 = nodes[1];
-                    p2 = nodes[0];
-                    e1.update(p1, p2);
+                    p1 = Nodes[1];
+                    p2 = Nodes[0];
+                    e1.Update(p1, p2);
                 }
                 Edge e2 = new Edge(p2, p3);
                 Edge e3 = new Edge(p3, p1);
-                e1.nextH = e2;
-                e2.nextH = e3;
-                e3.nextH = e1;
-                hullStart = e1;
-                triangles.Add(new Triangle(edges, e1, e2, e3));
+                e1.NextH = e2;
+                e2.NextH = e3;
+                e3.NextH = e1;
+                HullStart = e1;
+                Triangles.Add(new Triangle(Edges, e1, e2, e3));
                 return;
             }
-            actE = edges[0];
-            if (actE.onSide(nd) == -1)
+            ActE = Edges[0];
+            if (ActE.OnSide(nd) == -1)
             {
-                if (actE.invE == null)
+                if (ActE.InvE == null)
                     eid = -1;
                 else
-                    eid = searchEdge(actE.invE, nd);
+                    eid = SearchEdge(ActE.InvE, nd);
             }
             else
-                eid = searchEdge(actE, nd);
+                eid = SearchEdge(ActE, nd);
             if (eid == 0)
             {
-                nodes.Remove(nd);
+                Nodes.Remove(nd);
                 return;
             }
             if (eid > 0)
-                expandTri(actE, nd, eid);   // nd is inside or on a triangle
+                ExpandTri(ActE, nd, eid);   // nd is inside or on a triangle
             else
-                expandHull(nd);                // nd is outside convex hull
+                ExpandHull(nd);                // nd is outside convex hull
         }
 
-        private void expandTri(Edge e, Node nd, Int32 type)
+        private void ExpandTri(Edge e, Node nd, Int32 type)
         {
             Edge e1 = e;
-            Edge e2 = e1.nextE;
-            Edge e3 = e2.nextE;
-            Node p1 = e1.p1;
-            Node p2 = e2.p1;
-            Node p3 = e3.p1;
+            Edge e2 = e1.NextE;
+            Edge e3 = e2.NextE;
+            Node p1 = e1.P1;
+            Node p2 = e2.P1;
+            Node p3 = e3.P1;
             if (type == 2)
             {   // nd is inside of the triangle
                 Edge e10 = new Edge(p1, nd);
                 Edge e20 = new Edge(p2, nd);
                 Edge e30 = new Edge(p3, nd);
-                e.inT.removeEdges(edges);
-                triangles.Remove(e.inT);     // remove old triangle
-                Edge e100 = e10.makeSymm();
-                Edge e200 = e20.makeSymm();
-                Edge e300 = e30.makeSymm();
-                triangles.Add(new Triangle(edges, e1, e20, e100));
-                triangles.Add(new Triangle(edges, e2, e30, e200));
-                triangles.Add(new Triangle(edges, e3, e10, e300));
-                swapTest(e1);   // swap test for the three new triangles
-                swapTest(e2);
-                swapTest(e3);
+                e.InT.RemoveEdges(Edges);
+                Triangles.Remove(e.InT);     // remove old triangle
+                Edge e100 = e10.MakeSymmEdge();
+                Edge e200 = e20.MakeSymmEdge();
+                Edge e300 = e30.MakeSymmEdge();
+                Triangles.Add(new Triangle(Edges, e1, e20, e100));
+                Triangles.Add(new Triangle(Edges, e2, e30, e200));
+                Triangles.Add(new Triangle(Edges, e3, e10, e300));
+                SwapTest(e1);   // swap test for the three new triangles
+                SwapTest(e2);
+                SwapTest(e3);
             }
             else
             {   
                 // nd is on the edge e
-                Edge e4 = e1.invE;
-                if (e4 == null || e4.inT == null)
+                Edge e4 = e1.InvE;
+                if (e4 == null || e4.InT == null)
                 {          
                     // one triangle involved
                     Edge e30 = new Edge(p3, nd);
                     Edge e02 = new Edge(nd, p2);
                     Edge e10 = new Edge(p1, nd);
-                    Edge e03 = e30.makeSymm();
+                    Edge e03 = e30.MakeSymmEdge();
                     //shareEdges(e03,e30);
-                    e10.asIndex();
-                    e1.mostLeft().nextH = e10;
-                    e10.nextH = e02;
-                    e02.nextH = e1.nextH;
-                    hullStart = e02;
-                    triangles.Remove(e1.inT);  // remove oldtriangle and add two new triangles
-                    edges.Remove(e1);
-                    edges.Add(e10);
-                    edges.Add(e02);
-                    edges.Add(e30);
-                    edges.Add(e03);
-                    triangles.Add(new Triangle(e2, e30, e02));
-                    triangles.Add(new Triangle(e3, e10, e03));
-                    swapTest(e2);   // swap test for the two new triangles
-                    swapTest(e3);
-                    swapTest(e30);
+                    e10.AsIndex();
+                    e1.MostLeft().NextH = e10;
+                    e10.NextH = e02;
+                    e02.NextH = e1.NextH;
+                    HullStart = e02;
+                    Triangles.Remove(e1.InT);  // remove oldtriangle and add two new triangles
+                    Edges.Remove(e1);
+                    Edges.Add(e10);
+                    Edges.Add(e02);
+                    Edges.Add(e30);
+                    Edges.Add(e03);
+                    Triangles.Add(new Triangle(e2, e30, e02));
+                    Triangles.Add(new Triangle(e3, e10, e03));
+                    SwapTest(e2);   // swap test for the two new triangles
+                    SwapTest(e3);
+                    SwapTest(e30);
                 }
                 else
                 {        
                     // two triangle involved
-                    Edge e5 = e4.nextE;
-                    Edge e6 = e5.nextE;
-                    Node p4 = e6.p1;
+                    Edge e5 = e4.NextE;
+                    Edge e6 = e5.NextE;
+                    Node p4 = e6.P1;
                     Edge e10 = new Edge(p1, nd);
                     Edge e20 = new Edge(p2, nd);
                     Edge e30 = new Edge(p3, nd);
                     Edge e40 = new Edge(p4, nd);
-                    triangles.Remove(e.inT);                   // remove oldtriangle
-                    e.inT.removeEdges(edges);
-                    triangles.Remove(e4.inT);               // remove old triangle
-                    e4.inT.removeEdges(edges);
-                    e5.asIndex();   // because e, e4 removed, reset edge sortOrder of node p1 and p2
-                    e2.asIndex();
-                    triangles.Add(new Triangle(edges, e2, e30, e20.makeSymm()));
-                    triangles.Add(new Triangle(edges, e3, e10, e30.makeSymm()));
-                    triangles.Add(new Triangle(edges, e5, e40, e10.makeSymm()));
-                    triangles.Add(new Triangle(edges, e6, e20, e40.makeSymm()));
-                    swapTest(e2);   // swap test for the three new triangles
-                    swapTest(e3);
-                    swapTest(e5);
-                    swapTest(e6);
-                    swapTest(e10);
-                    swapTest(e20);
-                    swapTest(e30);
-                    swapTest(e40);
+                    Triangles.Remove(e.InT);                   // remove oldtriangle
+                    e.InT.RemoveEdges(Edges);
+                    Triangles.Remove(e4.InT);               // remove old triangle
+                    e4.InT.RemoveEdges(Edges);
+                    e5.AsIndex();   // because e, e4 removed, reset edge sortOrder of node p1 and p2
+                    e2.AsIndex();
+                    Triangles.Add(new Triangle(Edges, e2, e30, e20.MakeSymmEdge()));
+                    Triangles.Add(new Triangle(Edges, e3, e10, e30.MakeSymmEdge()));
+                    Triangles.Add(new Triangle(Edges, e5, e40, e10.MakeSymmEdge()));
+                    Triangles.Add(new Triangle(Edges, e6, e20, e40.MakeSymmEdge()));
+                    SwapTest(e2);   // swap test for the three new triangles
+                    SwapTest(e3);
+                    SwapTest(e5);
+                    SwapTest(e6);
+                    SwapTest(e10);
+                    SwapTest(e20);
+                    SwapTest(e30);
+                    SwapTest(e40);
                 }
             }
         }
 
-        private void expandHull(Node nd)
+        private void ExpandHull(Node nd)
         {
             Edge e1, e2, e3 = null, enext;
-            Edge e = hullStart;
+            Edge e = HullStart;
             Edge comedge = null, lastbe = null;
             while (true)
             {
-                enext = e.nextH;
-                if (e.onSide(nd) == -1)
+                enext = e.NextH;
+                if (e.OnSide(nd) == -1)
                 {  
                     // right side
                     if (lastbe != null)
                     {
-                        e1 = e.makeSymm();
-                        e2 = new Edge(e.p1, nd);
-                        e3 = new Edge(nd, e.p2);
+                        e1 = e.MakeSymmEdge();
+                        e2 = new Edge(e.P1, nd);
+                        e3 = new Edge(nd, e.P2);
                         if (comedge == null)
                         {
-                            hullStart = lastbe;
-                            lastbe.nextH = e2;
+                            HullStart = lastbe;
+                            lastbe.NextH = e2;
                             lastbe = e2;
                         }
                         else
-                            comedge.linkSymm(e2);
+                            comedge.LinkSymmEdge(e2);
 
                         comedge = e3;
-                        triangles.Add(new Triangle(edges, e1, e2, e3));
-                        swapTest(e);
+                        Triangles.Add(new Triangle(Edges, e1, e2, e3));
+                        SwapTest(e);
                     }
                 }
                 else
@@ -959,88 +971,88 @@ namespace ScagnosticsSharp
                 e = enext;
             }
 
-            lastbe.nextH = e3;
-            e3.nextH = e;
+            lastbe.NextH = e3;
+            e3.NextH = e;
         }
 
-        private Int32 searchEdge(Edge e, Node nd)
+        private Int32 SearchEdge(Edge e, Node nd)
         {
             Int32 f2, f3;
             Edge e0 = null;
-            if ((f2 = e.nextE.onSide(nd)) == -1)
+            if ((f2 = e.NextE.OnSide(nd)) == -1)
             {
-                if (e.nextE.invE != null)
-                    return searchEdge(e.nextE.invE, nd);
+                if (e.NextE.InvE != null)
+                    return SearchEdge(e.NextE.InvE, nd);
                 else
                 {
-                    actE = e;
+                    ActE = e;
                     return -1;
                 }
             }
-            if (f2 == 0) e0 = e.nextE;
-            Edge ee = e.nextE;
-            if ((f3 = ee.nextE.onSide(nd)) == -1)
+            if (f2 == 0) e0 = e.NextE;
+            Edge ee = e.NextE;
+            if ((f3 = ee.NextE.OnSide(nd)) == -1)
             {
-                if (ee.nextE.invE != null)
-                    return searchEdge(ee.nextE.invE, nd);
+                if (ee.NextE.InvE != null)
+                    return SearchEdge(ee.NextE.InvE, nd);
                 else
                 {
-                    actE = ee.nextE;
+                    ActE = ee.NextE;
                     return -1;
                 }
             }
-            if (f3 == 0) e0 = ee.nextE;
-            if (e.onSide(nd) == 0) e0 = e;
+            if (f3 == 0) e0 = ee.NextE;
+            if (e.OnSide(nd) == 0) e0 = e;
             if (e0 != null)
             {
-                actE = e0;
-                if (e0.nextE.onSide(nd) == 0)
+                ActE = e0;
+                if (e0.NextE.OnSide(nd) == 0)
                 {
-                    actE = e0.nextE;
+                    ActE = e0.NextE;
                     return 0;
                 }
-                if (e0.nextE.nextE.onSide(nd) == 0) return 0;
+                if (e0.NextE.NextE.OnSide(nd) == 0) return 0;
                 return 1;
             }
-            actE = ee;
+            ActE = ee;
             return 2;
         }
 
-        private void swapTest(Edge e11)
+        private void SwapTest(Edge e11)
         {
-            Edge e21 = e11.invE;
-            if (e21 == null || e21.inT == null) return;
-            Edge e12 = e11.nextE;
-            Edge e13 = e12.nextE;
-            Edge e22 = e21.nextE;
-            Edge e23 = e22.nextE;
-            if (e11.inT.inCircle(e22.p2) || e21.inT.inCircle(e12.p2))
+            Edge e21 = e11.InvE;
+            if (e21 == null || e21.InT == null) return;
+            Edge e12 = e11.NextE;
+            Edge e13 = e12.NextE;
+            Edge e22 = e21.NextE;
+            Edge e23 = e22.NextE;
+            if (e11.InT.InCircle(e22.P2) || e21.InT.InCircle(e12.P2))
             {
-                e11.update(e22.p2, e12.p2);
-                e21.update(e12.p2, e22.p2);
-                e11.linkSymm(e21);
-                e13.inT.update(e13, e22, e11);
-                e23.inT.update(e23, e12, e21);
-                e12.asIndex();
-                e22.asIndex();
-                swapTest(e12);
-                swapTest(e22);
-                swapTest(e13);
-                swapTest(e23);
+                e11.Update(e22.P2, e12.P2);
+                e21.Update(e12.P2, e22.P2);
+                e11.LinkSymmEdge(e21);
+                e13.InT.Update(e13, e22, e11);
+                e23.InT.Update(e23, e12, e21);
+                e12.AsIndex();
+                e22.AsIndex();
+                SwapTest(e12);
+                SwapTest(e22);
+                SwapTest(e13);
+                SwapTest(e23);
             }
         }
 
-        private void markHull()
+        private void MarkHull()
         {
-            Edge e = hullStart;
+            Edge e = HullStart;
             if (e != null)
                 do
                 {
-                    e.onHull = true;
-                    e.p1.onHull = true;
-                    e.p2.onHull = true;
-                    e = e.nextH;
-                } while (!e.isEqual(hullStart));
+                    e.OnHull = true;
+                    e.P1.OnHull = true;
+                    e.P2.OnHull = true;
+                    e = e.NextH;
+                } while (!e.IsEqual(HullStart));
         }
     }
 }

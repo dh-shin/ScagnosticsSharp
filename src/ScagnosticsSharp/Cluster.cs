@@ -6,61 +6,65 @@ using System.Threading.Tasks;
 
 namespace ScagnosticsSharp
 {
-    public class Cluster
+    internal class Cluster
     {
-        private Int32[] members;
-        private Int32 numClusters;
-        private Int32 numIterations;
-        private Int32 nVar;
-        private Int32 nRow;
+        private Int32[] Members;
+        private Int32 NumClusters;
+        private Int32 NumIterations;
+        private Int32 NumVar;
+        private Int32 NumRow;
 
         public Cluster(Int32 numClusters, Int32 numIterations)
         {
-            this.numIterations = 3;
-            this.numClusters = 0;
-            if (numIterations != 0) this.numIterations = numIterations;
-            if (numClusters != 0) this.numClusters = numClusters;
+            NumIterations = 3;
+            NumClusters = 0;
+
+            if (numIterations != 0)
+                NumIterations = numIterations;
+
+            if (numClusters != 0)
+                NumClusters = numClusters;
         }
 
-        public Int32[] compute(Double[,] data)
+        public Int32[] Compute(Double[,] data)
         {
-            nRow = data.GetLength(0);
-            nVar = data.GetLength(1);
+            NumRow = data.GetLength(0);
+            NumVar = data.GetLength(1);
             Boolean useStoppingRule = false;
             Double[,] ssr = null;
-            if (numClusters == 0)
+            if (NumClusters == 0)
             {
                 useStoppingRule = true;
-                numClusters = 25;
-                ssr = new Double[numClusters, nVar];
+                NumClusters = 25;
+                ssr = new Double[NumClusters, NumVar];
             }
 
-            Double[,] center = new Double[numClusters, nVar];
-            Double[,] count = new Double[numClusters, nVar];
-            Double[,] mean = new Double[numClusters, nVar];
-            Double[,] min = new Double[numClusters, nVar];
-            Double[,] max = new Double[numClusters, nVar];
-            Double[,] ssq = new Double[numClusters, nVar];
-            Int32[] closestPoInt32s = new Int32[numClusters];
-            Double[] closestDistances = new Double[numClusters];
+            Double[,] center = new Double[NumClusters, NumVar];
+            Double[,] count = new Double[NumClusters, NumVar];
+            Double[,] mean = new Double[NumClusters, NumVar];
+            Double[,] min = new Double[NumClusters, NumVar];
+            Double[,] max = new Double[NumClusters, NumVar];
+            Double[,] ssq = new Double[NumClusters, NumVar];
+            Int32[] closestPoInt32s = new Int32[NumClusters];
+            Double[] closestDistances = new Double[NumClusters];
 
-            members = new Int32[nRow];
-            Int32[] mem = new Int32[nRow];
+            Members = new Int32[NumRow];
+            Int32[] mem = new Int32[NumRow];
 
-            for (Int32 k = 0; k < numClusters; k++)
+            for (Int32 k = 0; k < NumClusters; k++)
             {
 
                 /* find best assignments for current number of clusters */
-                for (Int32 iter = 0; iter < numIterations; iter++)
+                for (Int32 iter = 0; iter < NumIterations; iter++)
                 {
                     Boolean reassigned = false;
                     for (Int32 l = 0; l <= k; l++)
                     {
-                        for (Int32 j = 0; j < nVar; j++)
+                        for (Int32 j = 0; j < NumVar; j++)
                         {
                             if (iter == 0 || center[l, j] != mean[l, j])
                             {
-                                reassign(k, data, center, count, mean, min, max, ssq,
+                                Reassign(k, data, center, count, mean, min, max, ssq,
                                         closestPoInt32s, closestDistances);
                                 reassigned = true;
                                 break;
@@ -79,7 +83,7 @@ namespace ScagnosticsSharp
                 {
                     Double ssq1 = 0;
                     Double ssq2 = 0;
-                    for (Int32 j = 0; j < nVar; j++)
+                    for (Int32 j = 0; j < NumVar; j++)
                     {
                         for (Int32 l = 0; l <= k; l++)
                         {
@@ -91,21 +95,21 @@ namespace ScagnosticsSharp
                     Double pre = (ssq1 - ssq2) / ssq1;       //proportional reduction of error
                     if (pre > 0 && pre < .1)
                     {
-                        numClusters = k;
-                        reassign(k, data, center, count, mean, min, max, ssq,
+                        NumClusters = k;
+                        Reassign(k, data, center, count, mean, min, max, ssq,
                                 closestPoInt32s, closestDistances);
-                        Array.Copy(mem, members, nRow);
+                        Array.Copy(mem, Members, NumRow);
                         break;
                     }
                     else
                     {
-                        Array.Copy(members, mem, nRow);
+                        Array.Copy(Members, mem, NumRow);
                     }
                 }
 
                 /* now split a cluster to increment number of clusters */
 
-                if (k < numClusters - 1)
+                if (k < NumClusters - 1)
                 {
                     Int32 kn = k + 1;
                     Double dmax = 0;
@@ -114,7 +118,7 @@ namespace ScagnosticsSharp
                     Double cutpoInt32 = 0;
                     for (Int32 l = 0; l <= k; l++)
                     {
-                        for (Int32 j = 0; j < nVar; j++)
+                        for (Int32 j = 0; j < NumVar; j++)
                         {
                             Double dm = max[l, j] - min[l, j];
                             if (dm > dmax)
@@ -126,11 +130,11 @@ namespace ScagnosticsSharp
                             }
                         }
                     }
-                    for (Int32 i = 0; i < nRow; i++)
+                    for (Int32 i = 0; i < NumRow; i++)
                     {
-                        if (members[i] == km && data[i, jm] > cutpoInt32)
+                        if (Members[i] == km && data[i, jm] > cutpoInt32)
                         {
-                            for (Int32 j = 0; j < nVar; j++)
+                            for (Int32 j = 0; j < NumVar; j++)
                             {
                                 count[km, j]--;
                                 count[kn, j]++;
@@ -144,16 +148,16 @@ namespace ScagnosticsSharp
 
             Int32 nc = 0;
             Double cutoff = .1;
-            for (Int32 k = 0; k < numClusters; k++)
+            for (Int32 k = 0; k < NumClusters; k++)
             {
-                if (count[k, 0] / (Double)nRow > cutoff) nc++;
+                if (count[k, 0] / (Double)NumRow > cutoff) nc++;
             }
 
             Int32[] exemplars = new Int32[nc];
             nc = 0;
-            for (Int32 k = 0; k < numClusters; k++)
+            for (Int32 k = 0; k < NumClusters; k++)
             {
-                if (count[k, 0] / (Double)nRow > cutoff)
+                if (count[k, 0] / (Double)NumRow > cutoff)
                 {
                     exemplars[nc] = closestPoInt32s[k];
                     nc++;
@@ -162,18 +166,16 @@ namespace ScagnosticsSharp
             return exemplars;
         }
 
-        private void reassign(Int32 nCluster, Double[,] data, Double[,] center, Double[,] count,
+        private void Reassign(Int32 nCluster, Double[,] data, Double[,] center, Double[,] count,
                               Double[,] mean, Double[,] min, Double[,] max, Double[,] ssq,
                               Int32[] closestPoInt32s, Double[] closestDistances)
         {
-
             /* initialize cluster statistics */
-
             for (Int32 k = 0; k <= nCluster; k++)
             {
                 closestPoInt32s[k] = -1;
                 closestDistances[k] = Double.PositiveInfinity;
-                for (Int32 j = 0; j < nVar; j++)
+                for (Int32 j = 0; j < NumVar; j++)
                 {
                     center[k, j] = mean[k, j];
                     mean[k, j] = 0;
@@ -184,10 +186,8 @@ namespace ScagnosticsSharp
                 }
             }
 
-            /* assign each poInt32 to closest cluster and update statistics */
-
-
-            for (Int32 i = 0; i < nRow; i++)
+            /* assign each point to closest cluster and update statistics */
+            for (Int32 i = 0; i < NumRow; i++)
             {
 
                 /* find closest cluster */
@@ -195,7 +195,7 @@ namespace ScagnosticsSharp
                 Int32 kmin = -1;
                 for (Int32 k = 0; k <= nCluster; k++)
                 {
-                    Double dd = distance(data, center, i, k);
+                    Double dd = Distance(data, center, i, k);
                     if (dd < dmin)
                     {
                         dmin = dd;
@@ -209,16 +209,15 @@ namespace ScagnosticsSharp
                 }
                 if (kmin < 0)
                 {
-                    members[i] = -1;
+                    Members[i] = -1;
                 }
                 else
                 {
-                    members[i] = kmin;
+                    Members[i] = kmin;
                 }
 
                 /* update cluster statistics */
-
-                for (Int32 j = 0; j < nVar; j++)
+                for (Int32 j = 0; j < NumVar; j++)
                 {
                     if (!Double.IsNaN(data[i, j]))
                     {
@@ -237,7 +236,7 @@ namespace ScagnosticsSharp
             }
         }
 
-        private Double distance(Double[,] a, Double[,] b, Int32 ainx, Int32 binx)
+        private Double Distance(Double[,] a, Double[,] b, Int32 ainx, Int32 binx)
         {
             Double dist = 0;
             for (Int32 i = 0; i < a.GetLength(0); i++)

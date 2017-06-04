@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ScagnosticsSharp
 {
-    public class Sorts
+    internal class Sorts
     {
         private Sorts()
         {
@@ -22,7 +22,7 @@ namespace ScagnosticsSharp
             Array.Sort(x, fromIndex, toIndex);
         }
 
-        public static Int32[] indexedDoubleArraySort(Double[] x, Int32 fromIndex, Int32 toIndex)
+        public static Int32[] IndexedDoubleArraySort(Double[] x, Int32 fromIndex, Int32 toIndex)
         {
             if (fromIndex == toIndex)
             {
@@ -42,7 +42,7 @@ namespace ScagnosticsSharp
             return sortOrder;
         }
 
-        public static Double[] rank(Double[] a)
+        public static Double[] Rank(Double[] a)
         {
             Int32 k, k1, k2, kind, kms, l, lind, n;
             Double ak, am, freq;
@@ -50,7 +50,7 @@ namespace ScagnosticsSharp
 
             n = a.Length;
             Double[] ranks = new Double[n];
-            Int32[] index = indexedDoubleArraySort(a, 0, n);
+            Int32[] index = IndexedDoubleArraySort(a, 0, n);
 
             lind = index[0];
             am = a[lind];
@@ -67,8 +67,8 @@ namespace ScagnosticsSharp
                 {
                     freq = 1.0;
                     /*
-                                    if (wt != null)
-                                        freq = Math.floor(wt[kind]);
+                    if (wt != null)
+                        freq = Math.floor(wt[kind]);
                     */
                     kms += (Int32)freq;
                     if (freq > 1.0)

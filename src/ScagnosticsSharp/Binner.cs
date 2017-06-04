@@ -6,21 +6,20 @@ using System.Threading.Tasks;
 
 namespace ScagnosticsSharp
 {
-    public class Binner
+    internal class Binner
     {
-        private Int32 maxBins;
+        private Int32 MaxBins;
 
         public Binner(Int32 maxBins)
         {
-            this.maxBins = maxBins;
+            MaxBins = maxBins;
         }
 
-        public BinnedData binHex(Double[] x, Double[] y, Int32 nBins)
+        public BinnedData BinHex(Double[] x, Double[] y, Int32 nBins)
         {
             Int32 n = x.Length;
 
             // scaling constants
-
             Double con1 = .25;
             Double con2 = 1.0 / 3.0;
             Double c1 = (Double)(nBins - 1);
@@ -34,7 +33,6 @@ namespace ScagnosticsSharp
             Double[] ybin = new Double[nBin];
 
             // fill bins
-
             for (Int32 i = 0; i < n; i++)
             {
                 if (Double.IsNaN(x[i])) continue;
@@ -76,11 +74,11 @@ namespace ScagnosticsSharp
                 ybin[m] += (y[i] - ybin[m]) / count[m];
             }
 
-            nBin = deleteEmptyBins(count, xbin, ybin);
-            if (nBin > maxBins)
+            nBin = DeleteEmptyBins(count, xbin, ybin);
+            if (nBin > MaxBins)
             {
                 nBins = 2 * nBins / 3;
-                return binHex(x, y, nBins);
+                return BinHex(x, y, nBins);
             }
 
             Int32[] tcount = new Int32[nBin];
@@ -94,9 +92,8 @@ namespace ScagnosticsSharp
             return new BinnedData(xtbin, ytbin, tcount);
         }
 
-        private Int32 deleteEmptyBins(Int32[] count, Double[] xbin, Double[] ybin)
+        private Int32 DeleteEmptyBins(Int32[] count, Double[] xbin, Double[] ybin)
         {
-
             Int32 k = 0;
             for (Int32 i = 0; i < count.Length; i++)
             {

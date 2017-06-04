@@ -6,52 +6,51 @@ using System.Threading.Tasks;
 
 namespace ScagnosticsSharp
 {
-    public class Node
+    internal class Node
     {
-        public Int32 x, y;          // coordinate X,Y
-        protected Int32 count;        // number of poInt32s aggregated at this node
-        public Edge anEdge;     // an edge which starts from this node
-        public List<Edge> neighbors;   // nearest Delaunay neighbors list
-        public Boolean onMST;
-        public Boolean onHull = false;
-        public Boolean isVisited = false;
-        public Int32 mstDegree;
-        public Int32 poInt32ID;
-        protected Int32 nodeID;
+        public Int32 X, Y;              // coordinate X, Y
+        public Int32 Count;             // number of points aggregated at this node
+        public Edge AnEdge;             // an edge which starts from this node
+        public List<Edge> Neighbors;    // nearest Delaunay neighbors list
+        public Boolean OnMST;
+        public Boolean OnHull = false;
+        public Boolean IsVisited = false;
+        public Int32 MstDegree;
+        public Int32 PointID;
 
-        public Node(Int32 x, Int32 y, Int32 count, Int32 poInt32ID)
+        public Node(Int32 x, Int32 y, Int32 count, Int32 pointID)
         {
-            this.x = x;
-            this.y = y;
-            this.count = count;
-            anEdge = null;
-            neighbors = new List<Edge>();
-            this.poInt32ID = poInt32ID;
+            X = x;
+            Y = y;
+            Count = count;
+            AnEdge = null;
+            Neighbors = new List<Edge>();
+            PointID = pointID;
         }
 
-        public Double distToNode(Double px, Double py)
+        public Double DistToNode(Double px, Double py)
         {
-            Double dx = px - x;
-            Double dy = py - y;
+            Double dx = px - X;
+            Double dy = py - Y;
             return Math.Sqrt(dx * dx + dy * dy);
         }
 
-        public void setNeighbor(Edge neighbor)
+        public void SetNeighbor(Edge neighbor)
         {
-            neighbors.Add(neighbor);
+            Neighbors.Add(neighbor);
         }
 
-        public Edge shortestEdge(Boolean mst)
+        public Edge ShortestEdge(Boolean mst)
         {
             Edge emin = null;
-            if (neighbors != null)
+            if (Neighbors != null)
             {
                 Double wmin = Double.MaxValue;
-                foreach(Edge e in neighbors)
+                foreach(Edge e in Neighbors)
                 {
-                    if (mst || !e.otherNode(this).onMST)
+                    if (mst || !e.OtherNode(this).OnMST)
                     {
-                        Double wt = e.weight;
+                        Double wt = e.Weight;
                         if (wt < wmin)
                         {
                             wmin = wt;
@@ -63,30 +62,30 @@ namespace ScagnosticsSharp
             return emin;
         }
 
-        public Int32 getMSTChildren(Double cutoff, Double[] maxLength)
+        public Int32 GetMSTChildren(Double cutoff, Double[] maxLength)
         {
             Int32 count = 0;
-            if (isVisited)
+            if (IsVisited)
                 return count;
-            isVisited = true;
+            IsVisited = true;
 
-            foreach(Edge e in neighbors)
+            foreach(Edge e in Neighbors)
             {
-                if (e.onMST)
+                if (e.OnMST)
                 {
-                    if (e.weight < cutoff)
+                    if (e.Weight < cutoff)
                     {
-                        if (!e.otherNode(this).isVisited)
+                        if (!e.OtherNode(this).IsVisited)
                         {
-                            count += e.otherNode(this).getMSTChildren(cutoff, maxLength);
-                            Double el = e.weight;
+                            count += e.OtherNode(this).GetMSTChildren(cutoff, maxLength);
+                            Double el = e.Weight;
                             if (el > maxLength[0])
                                 maxLength[0] = el;
                         }
                     }
                 }
             }
-            count += this.count; // add count for this node
+            count += Count; // add count for this node
             return count;
         }
     }

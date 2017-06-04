@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 
 namespace ScagnosticsSharp
 {
-    public class BinnedData
+    internal class BinnedData
     {
-        private Int32[] x = null;
-        private Int32[] y = null;
-        private Int32[] counts = null;
-
         private const Double RESOLUTION = 1000;
+
+        public Int32[] X = null;
+        public Int32[] Y = null;
+        public Int32[] Counts = null;
 
         public BinnedData(Double[] x, Double[] y, Int32[] counts)
         {
-            this.x = Int32egerizeData(x);
-            this.y = Int32egerizeData(y);
-            this.counts = counts;
+            X = IntegerizeData(x);
+            Y = IntegerizeData(y);
+            Counts = counts;
         }
 
-        private Int32[] Int32egerizeData(Double[] x)
+        private Int32[] IntegerizeData(Double[] x)
         {
             Int32 n = x.Length;
             Int32[] xd = new Int32[n];
@@ -30,21 +30,6 @@ namespace ScagnosticsSharp
                 xd[i] = (Int32)(RESOLUTION * x[i]);
             }
             return xd;
-        }
-
-        public Int32[] getXData()
-        {
-            return x;
-        }
-
-        public Int32[] getYData()
-        {
-            return y;
-        }
-
-        public Int32[] getCounts()
-        {
-            return counts;
         }
     }
 }

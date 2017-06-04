@@ -25,7 +25,7 @@ namespace ScagnosticsSharp.Test
             InitializeComponent();
             ReadSampleData();
 
-            Scagnostics.LoadJavaRand();
+            Scagnostics.LoadJavaRandomNumber();
             Double[][] scagnostics = ComputeScagnostics(Points, numBins, maxBins);
             for(Int32 i = 0; i < scagnostics.Length; i++)
             {
@@ -92,7 +92,7 @@ namespace ScagnosticsSharp.Test
 
             Double[][] scagnostics = new Double[numCells][];
             for(Int32 i = 0; i < numCells; i++)
-                scagnostics[i] = new Double[Scagnostics.getNumScagnostics()];
+                scagnostics[i] = new Double[Scagnostics.GetNumScagnostics()];
 
             Int32 k = 0;
             for (Int32 i = 1; i < nDim; i++)
@@ -100,7 +100,7 @@ namespace ScagnosticsSharp.Test
                 for (Int32 j = 0; j < i; j++)
                 {
                     Scagnostics s = new Scagnostics(points[j], points[i], numBins, maxBins);
-                    scagnostics[k] = s.compute();
+                    scagnostics[k] = s.Compute();
                     k++;
                 }
             }
