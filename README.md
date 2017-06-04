@@ -6,7 +6,7 @@ https://cran.r-project.org/web/packages/scagnostics/index.html
 
 https://github.com/cran/scagnostics
 
-#### Theoretical Background (Paper)
+## Theoretical Background (Paper)
 
 Wilkinson L., Anand, A., and Grossman, R. (2006). High-Dimensional visual analytics:
 
