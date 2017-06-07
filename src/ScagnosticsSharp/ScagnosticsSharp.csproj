@@ -55,7 +55,9 @@
     <EmbeddedResource Include="Resources\java_random_seed13579_row1000.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ScagnosticsSharp.nuspec" />
+    <None Include="ScagnosticsSharp.nuspec">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
