@@ -41,15 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinnedData.cs" />
-    <Compile Include="Binner.cs" />
-    <Compile Include="Cluster.cs" />
-    <Compile Include="Edge.cs" />
-    <Compile Include="Node.cs" />
+    <Compile Include="Classes\BinnedData.cs" />
+    <Compile Include="Classes\Binner.cs" />
+    <Compile Include="Classes\Cluster.cs" />
+    <Compile Include="Classes\Edge.cs" />
+    <Compile Include="Classes\Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scagnostics.cs" />
-    <Compile Include="Sorts.cs" />
-    <Compile Include="Triangle.cs" />
+    <Compile Include="Classes\Scagnostics.cs" />
+    <Compile Include="Classes\Sorts.cs" />
+    <Compile Include="Classes\Triangle.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\java_random_seed13579_row1000.txt" />

@@ -10,7 +10,7 @@
     <projectUrl>https://github.com/dh-shin/ScagnosticsSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Downgrade target version of the .NET Framework to 4.0</releaseNotes>
+    <releaseNotes>Turn all classes into internal type except for 'Scagnostics' class.</releaseNotes>
     <tags>visualization scatterplot</tags>
   </metadata>
 </package>
