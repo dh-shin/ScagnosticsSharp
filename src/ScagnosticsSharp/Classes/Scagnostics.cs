@@ -9,15 +9,18 @@ namespace ScagnosticsSharp
     public class Scagnostics
     {
         private const Double FUZZ = .999;
-
-        private static readonly Int32 NumScagnostics = 9;
-        private static readonly Int32 OUTLYING = 0, SKEWED = 1, CLUMPY = 2,
+        private const Int32 NUM_BINS = 50;
+        private const Int32 MAX_BINS = 1000;
+        private const Int32 DEFAULT_RANDOM_SEED = 13579;
+        private const Int32 NUM_MEASURES = 9;
+        private const Int32 OUTLYING = 0, SKEWED = 1, CLUMPY = 2,
             SPARSE = 3, STRIATED = 4, CONVEX = 5,
             SKINNY = 6, STRINGY = 7, MONOTONIC = 8;
-        private static readonly String[] ScagnosticsLabels = {"Outlying", "Skewed", "Clumpy",
+
+        private static readonly String[] ScagnosticsLabels = 
+            {"Outlying", "Skewed", "Clumpy",
             "Sparse", "Striated", "Convex",
             "Skinny", "Stringy", "Monotonic"};
-        private static readonly Int32 RandomSeed = 13579;
 
         private BinnedData BinData;
         private List<Node> Nodes;           // nodes set
@@ -28,7 +31,10 @@ namespace ScagnosticsSharp
         private Edge ActE;
         private Int32 TotalPeeledCount;
         private Int32 TotalCount;
-        private Double AlphaArea = 1, AlphaPerimeter = 1, HullArea = 1, HullPerimeter = 1;
+        private Double AlphaArea = 1;
+        private Double AlphaPerimeter = 1;
+        private Double HullArea = 1;
+        private Double HullPerimeter = 1;
         private Double TotalOriginalMSTLengths;
         private Double TotalMSTOutlierLengths;
         private Double[] SortedOriginalMSTLengths;
@@ -36,12 +42,18 @@ namespace ScagnosticsSharp
         private Int32[] Px, Py, Counts;
         private Boolean[] IsOutlier;
 
-        // For Java Random Numbers
+        // For Random Number for Delaunay Triangulation
+        private Int32 randomSeed;
+        public Int32 RandomSeed
+        {
+            get { return randomSeed; }
+            set { randomSeed = value; }
+        }
         private static Boolean IsJavaRandReady = false;
         private static Double[] Rx;
         private static Double[] Ry;
 
-        public Scagnostics(Double[] x, Double[] y, Int32 numBins, Int32 maxBins)
+        public Scagnostics(Double[] x, Double[] y, Int32 numBins = NUM_BINS, Int32 maxBins = MAX_BINS)
         {
             Nodes = new List<Node>();
             Edges = new List<Edge>();
@@ -49,6 +61,18 @@ namespace ScagnosticsSharp
             MstEdges = new List<Edge>();
             Binner b = new Binner(maxBins);
             BinData = b.BinHex(x, y, numBins);
+
+            RandomSeed = DEFAULT_RANDOM_SEED;
+        }
+
+        public static Int32 GetNumScagnostics()
+        {
+            return NUM_MEASURES;
+        }
+
+        public static String[] GetScagnosticsLabels()
+        {
+            return ScagnosticsLabels;
         }
 
         public Double[] Compute()
@@ -77,17 +101,8 @@ namespace ScagnosticsSharp
             ComputeAlphaPerimeter();
             ComputeHullArea();
             ComputeHullPerimeter();
+
             return ComputeMeasures();
-        }
-
-        public static Int32 GetNumScagnostics()
-        {
-            return ScagnosticsLabels.Length;
-        }
-
-        public static String[] GetScagnosticsLabels()
-        {
-            return ScagnosticsLabels;
         }
 
         public static Boolean[] ComputeScagnosticsExemplars(Double[,] pts)
@@ -272,7 +287,7 @@ namespace ScagnosticsSharp
 
         private Double[] ComputeMeasures()
         {
-            Double[] results = new Double[NumScagnostics];
+            Double[] results = new Double[NUM_MEASURES];
 
             // Do not change order of these calls!
             results[OUTLYING] = ComputeOutlierMeasure();
@@ -284,6 +299,7 @@ namespace ScagnosticsSharp
             results[STRIATED] = ComputeStriationMeasure();
             results[SPARSE] = ComputeSparsenessMeasure();
             results[MONOTONIC] = ComputeMonotonicityMeasure();
+
             return results;
         }
 
@@ -306,7 +322,7 @@ namespace ScagnosticsSharp
                 }
 
                 Int32 x = px[i] + (Int32)(8 * (rx - .5)); // perturb to prevent singularities
-                Int32 y = py[i] + (Int32)(8 * (ry - .5));
+                Int32 y = py[i] + (Int32)(8 * (ry - .5)); // perturb to prevent singularities
                 Int32 count = Counts[i];
                 if (!IsOutlier[i])
                 {
