@@ -9,8 +9,8 @@ namespace ScagnosticsSharp
     public class Scagnostics
     {
         private const Double FUZZ = .999;
-        private const Int32 NUM_BINS = 50;
-        private const Int32 MAX_BINS = 1000;
+        private const Int32 NUM_BINS = 50;      // user setting for number of bins
+        private const Int32 MAX_BINS = 1000;    // user setting for maximum number of nonempty bins allowed (maxBins >= numBins*numBins)
         private const Int32 DEFAULT_RANDOM_SEED = 13579;
         private const Int32 NUM_MEASURES = 9;
         private const Int32 OUTLYING = 0, SKEWED = 1, CLUMPY = 2,

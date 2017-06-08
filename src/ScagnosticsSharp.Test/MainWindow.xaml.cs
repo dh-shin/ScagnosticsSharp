@@ -12,29 +12,65 @@ namespace ScagnosticsSharp.Test
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly Int32 numBins = 50;    // user setting for number of bins
-        private readonly Int32 maxBins = 1000;  // user setting for maximum number of nonempty bins allowed (maxBins >= numBins*numBins)
-
         private static Int32 VarNum;
         private static Int32 RowNum;
         private static List<List<Double>> rawData;
+        private static String[] Headers;
         private static Double[][] Points;
 
         public MainWindow()
         {
             InitializeComponent();
+
             ReadSampleData();
 
             Scagnostics.LoadJavaRandomNumber();
-            Double[][] scagnostics = ComputeScagnostics(Points, numBins, maxBins);
-            for(Int32 i = 0; i < scagnostics.Length; i++)
+
+            Console.WriteLine("================= RUN SCAGNOSTICS =================");
+
+            NormalizePoints(Points);
+
+            Int32 nDim = Points.Length;
+            Int32 numCells = nDim * (nDim - 1) / 2;
+
+            String[][] vars = new String[numCells][];
+            for (Int32 i = 0; i < numCells; i++)
+                vars[i] = new String[2];
+
+            Double[][] results = new Double[numCells][];
+            for (Int32 i = 0; i < numCells; i++)
+                results[i] = new Double[Scagnostics.GetNumScagnostics()];
+
+            Int32 k = 0;
+            for (Int32 i = 1; i < nDim; i++)
             {
-                for (Int32 j = 0; j < scagnostics[i].Length ; j++)
+                for (Int32 j = 0; j < i; j++)
                 {
-                    Console.Write(scagnostics[i][j] + " / ");
+                    Scagnostics scagnostics = new Scagnostics(Points[j], Points[i]);
+                    results[k] = scagnostics.Compute();
+                    
+                    vars[k][0] = Headers[j];
+                    vars[k][1] = Headers[i];
+
+                    k++;
                 }
+            }
+
+            String[] measures = Scagnostics.GetScagnosticsLabels();
+            for (Int32 i = 0; i < measures.Length; i++)
+                Console.Write(measures[i] + " / ");
+            Console.WriteLine("");
+
+            for (Int32 i = 0; i < results.Length; i++)
+            {
+                Console.Write(vars[i][0] + " - " + vars[i][1] + " : ");
+
+                for (Int32 j = 0; j < results[i].Length; j++)
+                    Console.Write(results[i][j] + " / ");
                 Console.WriteLine("");
             }
+
+            Console.WriteLine("===================================================");
         }
 
         private static void ReadSampleData()
@@ -50,10 +86,16 @@ namespace ScagnosticsSharp.Test
                 while (reader.EndOfStream == false)
                 {
                     String result = reader.ReadLine();
-                    if (isHeader == false)
+                    String[] tokenized = result.Split(delimChars);
+
+                    if (isHeader == true)
+                    {
+                        Headers = tokenized;
+                        isHeader = false;
+                    }
+                    else
                     {
                         List<Double> values = new List<Double>();
-                        String[] tokenized = result.Split(delimChars);
                         for (Int32 i = 0; i < tokenized.Length; i++)
                         {
                             Double val;
@@ -64,7 +106,6 @@ namespace ScagnosticsSharp.Test
                         }
                         rawData.Add(values);
                     }
-                    isHeader = false;
                 }
             }
 
@@ -84,27 +125,27 @@ namespace ScagnosticsSharp.Test
             }
         }
 
-        private static Double[][] ComputeScagnostics(Double[][] points, Int32 numBins, Int32 maxBins)
+        private static Double[][] ComputeScagnostics(Double[][] points)
         {
             NormalizePoints(points);
             Int32 nDim = points.Length;
             Int32 numCells = nDim * (nDim - 1) / 2;
 
-            Double[][] scagnostics = new Double[numCells][];
+            Double[][] results = new Double[numCells][];
             for(Int32 i = 0; i < numCells; i++)
-                scagnostics[i] = new Double[Scagnostics.GetNumScagnostics()];
+                results[i] = new Double[Scagnostics.GetNumScagnostics()];
 
             Int32 k = 0;
             for (Int32 i = 1; i < nDim; i++)
             {
                 for (Int32 j = 0; j < i; j++)
                 {
-                    Scagnostics s = new Scagnostics(points[j], points[i], numBins, maxBins);
-                    scagnostics[k] = s.Compute();
+                    Scagnostics scagnostics = new Scagnostics(points[j], points[i]);
+                    results[k] = scagnostics.Compute();
                     k++;
                 }
             }
-            return scagnostics;
+            return results;
         }
 
         private static void NormalizePoints(Double[][] points)
