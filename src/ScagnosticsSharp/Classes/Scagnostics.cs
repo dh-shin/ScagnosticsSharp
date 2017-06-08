@@ -53,12 +53,19 @@ namespace ScagnosticsSharp
         private static Double[] Rx;
         private static Double[] Ry;
 
-        public Scagnostics(Double[] x, Double[] y, Int32 numBins = NUM_BINS, Int32 maxBins = MAX_BINS)
+        public Scagnostics(Double[] x, Double[] y, Int32 numBins = NUM_BINS, Int32 maxBins = MAX_BINS, Boolean doNormalize = false)
         {
             Nodes = new List<Node>();
             Edges = new List<Edge>();
             Triangles = new List<Triangle>();
             MstEdges = new List<Edge>();
+
+            if(doNormalize == true)
+            {
+                NormalizeArray(x);
+                NormalizeArray(y);
+            }
+
             Binner b = new Binner(maxBins);
             BinData = b.BinHex(x, y, numBins);
 
@@ -73,6 +80,23 @@ namespace ScagnosticsSharp
         public static String[] GetScagnosticsLabels()
         {
             return ScagnosticsLabels;
+        }
+
+        private static void NormalizeArray(Double[] data)
+        {
+            Double min = Double.MaxValue;
+            Double max = Double.MinValue;
+            for (Int32 i = 0; i < data.Length; i++)
+            {
+                if (i == 0)
+                    max = min = data[0];
+                else if (min > data[i])
+                    min = data[i];
+                else if (max < data[i])
+                    max = data[i];
+            }
+            for (Int32 i = 0; i < data.Length; i++)
+                data[i] = (data[i] - min) / (max - min);
         }
 
         public Double[] Compute()

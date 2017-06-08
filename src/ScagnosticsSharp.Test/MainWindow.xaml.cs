@@ -28,8 +28,6 @@ namespace ScagnosticsSharp.Test
 
             Console.WriteLine("================= RUN SCAGNOSTICS =================");
 
-            NormalizePoints(Points);
-
             Int32 nDim = Points.Length;
             Int32 numCells = nDim * (nDim - 1) / 2;
 
@@ -46,7 +44,7 @@ namespace ScagnosticsSharp.Test
             {
                 for (Int32 j = 0; j < i; j++)
                 {
-                    Scagnostics scagnostics = new Scagnostics(Points[j], Points[i]);
+                    Scagnostics scagnostics = new Scagnostics(Points[j], Points[i], doNormalize: true);
                     results[k] = scagnostics.Compute();
                     
                     vars[k][0] = Headers[j];
@@ -123,48 +121,6 @@ namespace ScagnosticsSharp.Test
                     Points[i][j] = rawData[j][i];
                 }
             }
-        }
-
-        private static Double[][] ComputeScagnostics(Double[][] points)
-        {
-            NormalizePoints(points);
-            Int32 nDim = points.Length;
-            Int32 numCells = nDim * (nDim - 1) / 2;
-
-            Double[][] results = new Double[numCells][];
-            for(Int32 i = 0; i < numCells; i++)
-                results[i] = new Double[Scagnostics.GetNumScagnostics()];
-
-            Int32 k = 0;
-            for (Int32 i = 1; i < nDim; i++)
-            {
-                for (Int32 j = 0; j < i; j++)
-                {
-                    Scagnostics scagnostics = new Scagnostics(points[j], points[i]);
-                    results[k] = scagnostics.Compute();
-                    k++;
-                }
-            }
-            return results;
-        }
-
-        private static void NormalizePoints(Double[][] points)
-        {
-            Double[] min = new Double[points.Length];
-            Double[] max = new Double[points.Length];
-            for (Int32 i = 0; i < points.Length; i++)
-                for (Int32 j = 0; j < points[0].Length; j++)
-                {
-                    if (j == 0)
-                        max[i] = min[i] = points[i][0];
-                    else if (min[i] > points[i][j])
-                        min[i] = points[i][j];
-                    else if (max[i] < points[i][j])
-                        max[i] = points[i][j];
-                }
-            for (Int32 i = 0; i < points.Length; i++)
-                for (Int32 j = 0; j < points[0].Length; j++)
-                    points[i][j] = (points[i][j] - min[i]) / (max[i] - min[i]);
         }
     }
 }
