@@ -10,7 +10,9 @@
     <projectUrl>https://github.com/dh-shin/ScagnosticsSharp</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Turn all classes into internal type except for 'Scagnostics' class.</releaseNotes>
+    <releaseNotes>Set default values for Scagnostics class arguments. 
+    Add a normalization module in Scagnostics class.
+    Make a seed number of Random class modifiable.</releaseNotes>
     <tags>visualization scatterplot</tags>
   </metadata>
 </package>
