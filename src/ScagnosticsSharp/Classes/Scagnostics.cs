@@ -218,7 +218,7 @@ namespace ScagnosticsSharp
             return outliers;
         }
 
-        public static void LoadJavaRandomNumber()
+        public static void UseJavaRandom()
         {
             if (IsJavaRandReady == true)
                 return;
@@ -266,7 +266,7 @@ namespace ScagnosticsSharp
             IsJavaRandReady = true;
         }
 
-        public static void UnloadJavaRandomNumber()
+        public static void UseSharpNativeRandom()
         {
             IsJavaRandReady = false;
         }

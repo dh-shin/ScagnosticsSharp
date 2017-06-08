@@ -24,7 +24,7 @@ namespace ScagnosticsSharp.Test
 
             ReadSampleData();
 
-            Scagnostics.LoadJavaRandomNumber();
+            Scagnostics.UseJavaRandom();
 
             Console.WriteLine("================= RUN SCAGNOSTICS =================");
 
